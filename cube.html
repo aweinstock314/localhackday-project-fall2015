@@ -228,19 +228,33 @@ function main() {
     //state.addObject(0, {obj_type: "cube", pos:[0,-0.5,1.5], ori:[TAU/4,TAU/16]});
     provideModel(state, "cube", [0.0,0.0,-0.5,0.0,1.0,-0.5,0.5,1.0,0.0,0.5,1.0,0.0,0.5,0.0,0.0,0.0,0.0,-0.5,0.0,0.0,-0.5,0.0,0.0,0.0,0.5,0.0,0.0,0.0,1.0,-0.5,0.0,1.0,0.0,0.5,1.0,0.0,0.5,0.0,0.0,0.5,1.0,0.0,0.0,1.0,0.5,0.0,1.0,0.5,0.0,0.0,0.5,0.5,0.0,0.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.5,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.5,0.0,0.0,0.5,0.0,1.0,0.5,-0.5,1.0,0.0,-0.5,1.0,0.0,-0.5,0.0,0.0,0.0,0.0,0.5,0.0,0.0,0.5,0.0,0.0,0.0,-0.5,0.0,0.0,0.0,1.0,0.5,0.0,1.0,0.0,-0.5,1.0,0.0,-0.5,0.0,0.0,-0.5,1.0,0.0,-0.0,1.0,-0.5,-0.0,1.0,-0.5,-0.0,0.0,-0.5,-0.5,0.0,0.0,-0.5,0.0,0.0,0.0,0.0,0.0,-0.0,0.0,-0.5,-0.5,1.0,0.0,0.0,1.0,0.0,-0.0,1.0,-0.5]);
     var num_objects = 0;
-    var SCALE = 0.75;
-    var SIZE = 100;
+    var SCALES = [0.75, 5, 0.75];
+    var DIMS = [25, 5, 25]
+    var DENSITY = 0.3;
     var indices = {};
-    for(var x=0;x<SIZE;x++) {
+    for(var x=0;x<DIMS[0];x++) {
         indices[x] = {};
-        for(var z=0;z<SIZE;z++) {
-            state.addObject(++num_objects, {obj_type: "cube", pos:[SCALE*x,0,SCALE*z], ori:[TAU/8,0]});
-            indices[x][z] = num_objects;
-            state.world[indices[x][z]].visible = Math.random() < 0.5;
+        for(var y=0;y<DIMS[1];y++) {
+            indices[x][y] = {};
+            for(var z=0;z<DIMS[2];z++) {
+                state.addObject(++num_objects, {obj_type: "cube", pos:[SCALES[0]*x,SCALES[1]*y,SCALES[2]*z], ori:[TAU/8,0]});
+                indices[x][y][z] = num_objects;
+                state.world[indices[x][y][z]].visible = Math.random() < DENSITY;
+                //function inrange(k) { return (8 <= k) && (k <= 12); }
+                //state.world[indices[x][y][z]].visible = inrange(x) && inrange(y) && inrange(z);
+            }
         }
     }
-    state.pos = [SCALE*SIZE/2, 8, SCALE*SIZE/2];
+    state.pos = [SCALES[0]*DIMS[0]/2, 1 + DIMS[1]*SCALES[1], SCALES[2]*DIMS[2]/2];
     state.ori[1] = -TAU/4;
+
+    // force a glider on layer 2
+    for(var x=0;x<DIMS[0];x++) { for(var z=0;z<DIMS[2];z++) {
+        state.world[indices[x][2][z]].visible = false;
+    }}
+    [[2,0],[3,1],[3,2],[2,2],[1,2]].dictForEach(function (_, v) {
+        state.world[indices[v[0]][2][v[1]]].visible = true;
+    });
 
     function positiveMod(a,b) {
         // http://www.seqmedia.com/2011/03/16/javascript-negative-numbers-modulus-bug/
@@ -249,32 +263,42 @@ function main() {
 
     function conwayStep() {
         var neighbors = {};
-        for(var x=0;x<SIZE;x++) {
+        for(var x=0;x<DIMS[0];x++) {
             neighbors[x] = {};
-            for(var z=0;z<SIZE;z++) {
-                neighbors[x][z] = 0;
-                for(var dx=-1; dx<=1; dx++) { for(var dz=-1; dz<=1; dz++) {
-                    if((dx == 0) && (dz == 0)) { continue; }
-                    var x_ = positiveMod(x+dx, SIZE);
-                    var z_ = positiveMod(z+dz, SIZE);
-                    neighbors[x][z] += state.world[indices[x_][z_]].visible ? 1 : 0;
-                }}
-            }
-        }
-        var visible = {};
-        for(var x=0;x<SIZE;x++) {
-            visible[x] = {};
-            for(var z=0;z<SIZE;z++) {
-                if(state.world[indices[x][z]].visible) {
-                    visible[x][z] = (neighbors[x][z] == 2) || (neighbors[x][z] == 3);
-                } else {
-                    visible[x][z] = neighbors[x][z] == 3;
+            for(var y=0;y<DIMS[1];y++) {
+                neighbors[x][y] = {};
+                for(var z=0;z<DIMS[2];z++) {
+                    neighbors[x][y][z] = 0;
+                    for(var dx=-1; dx<=1; dx++) { for(var dy=-1; dy<=1; dy++) { for(var dz=-1; dz<=1; dz++) {
+                        if(dy != 0) { continue; }
+                        if((dx == 0) && (dy == 0) && (dz == 0)) { continue; }
+                        var x_ = positiveMod(x+dx, DIMS[0]);
+                        var y_ = positiveMod(y+dy, DIMS[1]);
+                        var z_ = positiveMod(z+dz, DIMS[2]);
+                        neighbors[x][y][z] += state.world[indices[x_][y_][z_]].visible ? 1 : 0;
+                    }}}
                 }
             }
         }
-        for(var x=0;x<SIZE;x++) {
-            for(var z=0;z<SIZE;z++) {
-                state.world[indices[x][z]].visible = visible[x][z];
+        var visible = {};
+        for(var x=0;x<DIMS[0];x++) {
+            visible[x] = {};
+            for(var y=0;y<DIMS[1];y++) {
+                visible[x][y] = {};
+                for(var z=0;z<DIMS[2];z++) {
+                    if(state.world[indices[x][y][z]].visible) {
+                        visible[x][y][z] = (neighbors[x][y][z] == 2) || (neighbors[x][y][z] == 3);
+                    } else {
+                        visible[x][y][z] = neighbors[x][y][z] == 3;
+                    }
+                }
+            }
+        }
+        for(var x=0;x<DIMS[0];x++) {
+            for(var y=0;y<DIMS[1];y++) {
+                for(var z=0;z<DIMS[2];z++) {
+                    state.world[indices[x][y][z]].visible = visible[x][y][z];
+                }
             }
         }
         state.redraw = true;
