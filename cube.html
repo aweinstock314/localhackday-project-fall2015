@@ -86,7 +86,9 @@ function makeInitialState() {
         //obj.ori = unserializeTuple(obj.ori);
         obj.color = [Math.random(), Math.random(), Math.random()];
         obj.color2 = [Math.random(), Math.random(), Math.random()];
+        obj.visible = true;
         state.world[id | 0] = obj;
+        return state.world[id | 0];
     };
     return state;
 }
@@ -184,7 +186,9 @@ function renderFrame(state) {
         gl.uniform2f(cOri, state.ori[0], state.ori[1]);
 
         state.world.dictForEach(function(id, obj) {
-            drawModel(state, obj.obj_type, obj.pos, obj.ori, obj.color, obj.color2);
+            if(obj.visible) {
+                drawModel(state, obj.obj_type, obj.pos, obj.ori, obj.color, obj.color2);
+            }
         });
         state.redraw = false;
     }
@@ -220,11 +224,66 @@ function main() {
 
         state.redraw = true;
     };
-    provideModel(state, "cube", [0.0,0.0,-1.0,0.0,1.0,-1.0,1.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,-1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,-1.0,1.0,0.0,-1.0,1.0,0.0,-1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,0.0,-1.0,1.0,0.0,-1.0,0.0,0.0,-1.0,1.0,0.0,-0.0,1.0,-1.0,-0.0,1.0,-1.0,-0.0,0.0,-1.0,-1.0,0.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0,-0.0,0.0,-1.0,-1.0,1.0,0.0,0.0,1.0,0.0,-0.0,1.0,-1.0]);
-    state.addObject(0, {obj_type: "cube", pos:[0,-0.5,1.5], ori:[TAU/4,TAU/16]});
+    //provideModel(state, "cube", [0.0,0.0,-1.0,0.0,1.0,-1.0,1.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,-1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,-1.0,1.0,0.0,-1.0,1.0,0.0,-1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,0.0,-1.0,1.0,0.0,-1.0,0.0,0.0,-1.0,1.0,0.0,-0.0,1.0,-1.0,-0.0,1.0,-1.0,-0.0,0.0,-1.0,-1.0,0.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0,-0.0,0.0,-1.0,-1.0,1.0,0.0,0.0,1.0,0.0,-0.0,1.0,-1.0]);
+    //state.addObject(0, {obj_type: "cube", pos:[0,-0.5,1.5], ori:[TAU/4,TAU/16]});
+    provideModel(state, "cube", [0.0,0.0,-0.5,0.0,1.0,-0.5,0.5,1.0,0.0,0.5,1.0,0.0,0.5,0.0,0.0,0.0,0.0,-0.5,0.0,0.0,-0.5,0.0,0.0,0.0,0.5,0.0,0.0,0.0,1.0,-0.5,0.0,1.0,0.0,0.5,1.0,0.0,0.5,0.0,0.0,0.5,1.0,0.0,0.0,1.0,0.5,0.0,1.0,0.5,0.0,0.0,0.5,0.5,0.0,0.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.5,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.5,0.0,0.0,0.5,0.0,1.0,0.5,-0.5,1.0,0.0,-0.5,1.0,0.0,-0.5,0.0,0.0,0.0,0.0,0.5,0.0,0.0,0.5,0.0,0.0,0.0,-0.5,0.0,0.0,0.0,1.0,0.5,0.0,1.0,0.0,-0.5,1.0,0.0,-0.5,0.0,0.0,-0.5,1.0,0.0,-0.0,1.0,-0.5,-0.0,1.0,-0.5,-0.0,0.0,-0.5,-0.5,0.0,0.0,-0.5,0.0,0.0,0.0,0.0,0.0,-0.0,0.0,-0.5,-0.5,1.0,0.0,0.0,1.0,0.0,-0.0,1.0,-0.5]);
+    var num_objects = 0;
+    var SCALE = 0.75;
+    var SIZE = 100;
+    var indices = {};
+    for(var x=0;x<SIZE;x++) {
+        indices[x] = {};
+        for(var z=0;z<SIZE;z++) {
+            state.addObject(++num_objects, {obj_type: "cube", pos:[SCALE*x,0,SCALE*z], ori:[TAU/8,0]});
+            indices[x][z] = num_objects;
+            state.world[indices[x][z]].visible = Math.random() < 0.5;
+        }
+    }
+    state.pos = [SCALE*SIZE/2, 8, SCALE*SIZE/2];
+    state.ori[1] = -TAU/4;
+
+    function positiveMod(a,b) {
+        // http://www.seqmedia.com/2011/03/16/javascript-negative-numbers-modulus-bug/
+        return ((a % b) + b) % b;
+    }
+
+    function conwayStep() {
+        var neighbors = {};
+        for(var x=0;x<SIZE;x++) {
+            neighbors[x] = {};
+            for(var z=0;z<SIZE;z++) {
+                neighbors[x][z] = 0;
+                for(var dx=-1; dx<=1; dx++) { for(var dz=-1; dz<=1; dz++) {
+                    if((dx == 0) && (dz == 0)) { continue; }
+                    var x_ = positiveMod(x+dx, SIZE);
+                    var z_ = positiveMod(z+dz, SIZE);
+                    neighbors[x][z] += state.world[indices[x_][z_]].visible ? 1 : 0;
+                }}
+            }
+        }
+        var visible = {};
+        for(var x=0;x<SIZE;x++) {
+            visible[x] = {};
+            for(var z=0;z<SIZE;z++) {
+                if(state.world[indices[x][z]].visible) {
+                    visible[x][z] = (neighbors[x][z] == 2) || (neighbors[x][z] == 3);
+                } else {
+                    visible[x][z] = neighbors[x][z] == 3;
+                }
+            }
+        }
+        for(var x=0;x<SIZE;x++) {
+            for(var z=0;z<SIZE;z++) {
+                state.world[indices[x][z]].visible = visible[x][z];
+            }
+        }
+        state.redraw = true;
+    }
+    window.setInterval(conwayStep, 500);
+
     makeKeyRepeater(window, 10, function(currentlyHeldKeys) {
         function keyHeld(name) { return !!currentlyHeldKeys[name.charCodeAt(0)]; }
-        var MOVE_DELTA = 0.05;
+        var MOVE_DELTA = 0.05*5;
         var ROTATE_DELTA = 0.05;
         function polarXZMovement(pos, mag, theta) {
             pos[0] += mag * Math.cos(theta);
