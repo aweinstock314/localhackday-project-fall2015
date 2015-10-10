@@ -1,0 +1,262 @@
+<html>
+<head>
+<title>Cube with GLSL</title>
+<script id="shader-fragment" type="x-shader/x-fragment">
+precision highp float;
+varying vec3 vertexColorOut;
+varying vec3 vertexColorOut2;
+varying vec3 positionOut;
+const float pi = 3.14159;
+
+void main(void) {
+    vec3 normPos = normalize(positionOut);
+    float intensity = clamp(normPos.y, 0.5, 1.0);
+    float alpha = sin(normPos.z);
+    gl_FragColor = vec4(intensity * mix(vertexColorOut, vertexColorOut2, alpha), 1.0);
+}
+</script>
+<script id="shader-vertex" type="x-shader/x-vertex">
+attribute vec3 vertexPosition;
+attribute vec3 vertexColor;
+attribute vec3 vertexColor2;
+uniform vec3 cameraPos;
+uniform vec2 cameraOri;
+uniform vec3 objectPos;
+uniform vec3 objectOri;
+
+varying vec3 vertexColorOut;
+varying vec3 vertexColorOut2;
+varying vec3 positionOut;
+
+void main(void) {
+    /*
+    print . GLSL . simplify' $ foldl1' matrixMultiply [
+        frustum (Lit (-1)) (Lit 1) (Lit (-1)) (Lit 1) (Lit 0.5) (Lit 100),
+        rotation (Var "cos(cameraOri.y)") (Var "sin(cameraOri.y)") (Lit (-1)) (Lit 0) (Lit 0),
+        rotation (Var "cos(cameraOri.x)") (Var "sin(cameraOri.x)") (Lit 0) (Lit 1) (Lit 0),
+        translation (Neg $ Var "cameraPos.x") (Neg $ Var "cameraPos.y") (Var "cameraPos.z"),
+        translation (Var "objectPos.x") (Var "objectPos.y") (Neg $ Var "objectPos.z"),
+        rotation (Var "cos(objectOri.x)") (Var "sin(objectOri.x)") (Lit 0) (Lit (-1)) (Lit 0),
+        rotation (Var "cos(objectOri.y)") (Var "sin(objectOri.y)") (Lit 1) (Lit 0) (Lit 0)
+        ]
+    */
+    mat4 mvpMat = mat4((((0.5)*(cos(cameraOri.x)))*(cos(objectOri.x)))+(((0.5)*(sin(cameraOri.x)))*(sin(objectOri.x))),((((0.5)*(sin(cameraOri.y)))*((-sin(cameraOri.x))))*(cos(objectOri.x)))+((((0.5)*(sin(cameraOri.y)))*(cos(cameraOri.x)))*(sin(objectOri.x))),((((-1.0100502512562815)*(cos(cameraOri.y)))*((-sin(cameraOri.x))))*(cos(objectOri.x)))+((((-1.0100502512562815)*(cos(cameraOri.y)))*(cos(cameraOri.x)))*(sin(objectOri.x))),((((-cos(cameraOri.y)))*((-sin(cameraOri.x))))*(cos(objectOri.x)))+((((-cos(cameraOri.y)))*(cos(cameraOri.x)))*(sin(objectOri.x))),((((0.5)*(cos(cameraOri.x)))*((-sin(objectOri.x))))+(((0.5)*(sin(cameraOri.x)))*(cos(objectOri.x))))*(sin(objectOri.y)),(((0.5)*(cos(cameraOri.y)))*(cos(objectOri.y)))+((((((0.5)*(sin(cameraOri.y)))*((-sin(cameraOri.x))))*((-sin(objectOri.x))))+((((0.5)*(sin(cameraOri.y)))*(cos(cameraOri.x)))*(cos(objectOri.x))))*(sin(objectOri.y))),(((-1.0100502512562815)*((-sin(cameraOri.y))))*(cos(objectOri.y)))+((((((-1.0100502512562815)*(cos(cameraOri.y)))*((-sin(cameraOri.x))))*((-sin(objectOri.x))))+((((-1.0100502512562815)*(cos(cameraOri.y)))*(cos(cameraOri.x)))*(cos(objectOri.x))))*(sin(objectOri.y))),((sin(cameraOri.y))*(cos(objectOri.y)))+((((((-cos(cameraOri.y)))*((-sin(cameraOri.x))))*((-sin(objectOri.x))))+((((-cos(cameraOri.y)))*(cos(cameraOri.x)))*(cos(objectOri.x))))*(sin(objectOri.y))),((((0.5)*(cos(cameraOri.x)))*((-sin(objectOri.x))))+(((0.5)*(sin(cameraOri.x)))*(cos(objectOri.x))))*(cos(objectOri.y)),(((0.5)*(cos(cameraOri.y)))*((-sin(objectOri.y))))+((((((0.5)*(sin(cameraOri.y)))*((-sin(cameraOri.x))))*((-sin(objectOri.x))))+((((0.5)*(sin(cameraOri.y)))*(cos(cameraOri.x)))*(cos(objectOri.x))))*(cos(objectOri.y))),(((-1.0100502512562815)*((-sin(cameraOri.y))))*((-sin(objectOri.y))))+((((((-1.0100502512562815)*(cos(cameraOri.y)))*((-sin(cameraOri.x))))*((-sin(objectOri.x))))+((((-1.0100502512562815)*(cos(cameraOri.y)))*(cos(cameraOri.x)))*(cos(objectOri.x))))*(cos(objectOri.y))),((sin(cameraOri.y))*((-sin(objectOri.y))))+((((((-cos(cameraOri.y)))*((-sin(cameraOri.x))))*((-sin(objectOri.x))))+((((-cos(cameraOri.y)))*(cos(cameraOri.x)))*(cos(objectOri.x))))*(cos(objectOri.y))),(((0.5)*(cos(cameraOri.x)))*(objectPos.x))+((((0.5)*(sin(cameraOri.x)))*((-objectPos.z)))+((((0.5)*(cos(cameraOri.x)))*((-cameraPos.x)))+(((0.5)*(sin(cameraOri.x)))*(cameraPos.z)))),((((0.5)*(sin(cameraOri.y)))*((-sin(cameraOri.x))))*(objectPos.x))+((((0.5)*(cos(cameraOri.y)))*(objectPos.y))+(((((0.5)*(sin(cameraOri.y)))*(cos(cameraOri.x)))*((-objectPos.z)))+(((((0.5)*(sin(cameraOri.y)))*((-sin(cameraOri.x))))*((-cameraPos.x)))+((((0.5)*(cos(cameraOri.y)))*((-cameraPos.y)))+((((0.5)*(sin(cameraOri.y)))*(cos(cameraOri.x)))*(cameraPos.z)))))),((((-1.0100502512562815)*(cos(cameraOri.y)))*((-sin(cameraOri.x))))*(objectPos.x))+((((-1.0100502512562815)*((-sin(cameraOri.y))))*(objectPos.y))+(((((-1.0100502512562815)*(cos(cameraOri.y)))*(cos(cameraOri.x)))*((-objectPos.z)))+(((((-1.0100502512562815)*(cos(cameraOri.y)))*((-sin(cameraOri.x))))*((-cameraPos.x)))+((((-1.0100502512562815)*((-sin(cameraOri.y))))*((-cameraPos.y)))+(((((-1.0100502512562815)*(cos(cameraOri.y)))*(cos(cameraOri.x)))*(cameraPos.z))+(-1.0050251256281406)))))),((((-cos(cameraOri.y)))*((-sin(cameraOri.x))))*(objectPos.x))+(((sin(cameraOri.y))*(objectPos.y))+(((((-cos(cameraOri.y)))*(cos(cameraOri.x)))*((-objectPos.z)))+(((((-cos(cameraOri.y)))*((-sin(cameraOri.x))))*((-cameraPos.x)))+(((sin(cameraOri.y))*((-cameraPos.y)))+((((-cos(cameraOri.y)))*(cos(cameraOri.x)))*(cameraPos.z)))))));
+    vertexColorOut = vertexColor;
+    vertexColorOut2 = vertexColor2;
+    positionOut = vertexPosition;
+    gl_Position = mvpMat * vec4(vertexPosition, 1);
+}
+</script>
+<script>
+var TAU = 2 * Math.PI;
+Object.prototype.dictForEach = function(f) {
+    for(var key in this) {
+        if(this.hasOwnProperty(key)) {
+            f(key, this[key]);
+        }
+    }
+};
+
+function log(x) {
+    document.getElementById("debugging_log").textContent += x + "\n";
+}
+
+function unserializeTuple(obj) {
+    var tup = new Array();
+    obj.dictForEach(function(k, v) {
+        var result = /_field([0-9]+)/.exec(k);
+        if(result) { tup[result[1]|0] = v; };
+    });
+    return tup;
+}
+
+function makeInitialState() {
+    var state = {};
+    state.canvas = null;
+    state.gl = null;
+    state.redraw = true;
+    state.shaderProgram = null;
+    state.world = {};
+    state.models = {};
+    state.modelBuffers = {};
+    state.pos = [0,0,0];
+    state.ori = [0,0];
+    state.addObject = function(id, obj) {
+        //obj.pos = unserializeTuple(obj.pos);
+        //obj.ori = unserializeTuple(obj.ori);
+        obj.color = [Math.random(), Math.random(), Math.random()];
+        obj.color2 = [Math.random(), Math.random(), Math.random()];
+        state.world[id | 0] = obj;
+    };
+    return state;
+}
+
+function getNodeText(node) {
+    var text = "";
+    for(var current = node.firstChild; current; current = current.nextSibling) {
+        if(current.nodeType === current.TEXT_NODE) {
+            text += current.textContent;
+        }
+    }
+    return text;
+}
+
+function getShaderById(gl, id) {
+    var node = document.getElementById(id);
+    var source = getNodeText(node);
+    var shader = function(type) {
+        if(type === "x-shader/x-fragment") { return gl.createShader(gl.FRAGMENT_SHADER); }
+        if(type === "x-shader/x-vertex") { return gl.createShader(gl.VERTEX_SHADER); }
+        return null;
+    }(node.type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        log("Failed to compile shader '" + id + "': " + gl.getShaderInfoLog(shader));
+        return null;
+    }
+    return shader;
+}
+
+// adapted from documentation at https://developer.mozilla.org/en-US/docs/Web/WebGL
+function initWebGL(state) {
+    state.canvas = document.getElementById("gl_canvas");
+    try { state.gl = state.canvas.getContext("webgl") || state.canvas.getContext("experimental-webgl"); }
+    catch(e) {}
+    if(!state.gl) {
+        log("Failed to initialize WebGL context.");
+        state.gl = null;
+        return;
+    }
+
+    var gl = state.gl;
+    gl.viewport(0, 0, state.canvas.width, state.canvas.height);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clearDepth(1);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+
+    var shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, getShaderById(gl, "shader-fragment"));
+    gl.attachShader(shaderProgram, getShaderById(gl, "shader-vertex"));
+    gl.bindAttribLocation(shaderProgram, 0, "vertexPosition");
+    gl.bindAttribLocation(shaderProgram, 1, "vertexColor");
+    gl.bindAttribLocation(shaderProgram, 2, "vertexColor2");
+    gl.linkProgram(shaderProgram);
+    if(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        log("Failed to link shader program.");
+        return;
+    }
+    gl.useProgram(shaderProgram);
+    state.shaderProgram = shaderProgram;
+
+    gl.enableVertexAttribArray(gl.getAttribLocation(shaderProgram, "vertexPosition"));
+
+    window.setInterval(renderFrame, 1000/60, state);
+}
+
+function drawModel(state, modelName, pos, ori, col, col2) {
+    var gl = state.gl;
+    var vPos = gl.getAttribLocation(state.shaderProgram, "vertexPosition");
+    var vCol = gl.getAttribLocation(state.shaderProgram, "vertexColor");
+    var vCol2 = gl.getAttribLocation(state.shaderProgram, "vertexColor2");
+    var oPos = gl.getUniformLocation(state.shaderProgram, "objectPos");
+    var oOri = gl.getUniformLocation(state.shaderProgram, "objectOri");
+    if(state.models[modelName]) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, state.modelBuffers[modelName]);
+        gl.vertexAttribPointer(vPos, 3, gl.FLOAT, false, 0, 0);
+        gl.uniform3f(oPos, pos[0], pos[1], pos[2]);
+        gl.uniform3f(oOri, ori[0], ori[1], ori[2]);
+        gl.vertexAttrib3f(vCol, col[0], col[1], col[2]);
+        gl.vertexAttrib3f(vCol2, col2[0], col2[1], col2[2]);
+        gl.drawArrays(gl.TRIANGLES, 0, state.models[modelName].length/3);
+    }
+}
+
+function renderFrame(state) {
+    if(state.redraw) {
+        var gl = state.gl;
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        var cPos = gl.getUniformLocation(state.shaderProgram, "cameraPos");
+        var cOri = gl.getUniformLocation(state.shaderProgram, "cameraOri");
+        gl.uniform3f(cPos, state.pos[0], state.pos[1], state.pos[2]);
+        gl.uniform2f(cOri, state.ori[0], state.ori[1]);
+
+        state.world.dictForEach(function(id, obj) {
+            drawModel(state, obj.obj_type, obj.pos, obj.ori, obj.color, obj.color2);
+        });
+        state.redraw = false;
+    }
+}
+
+// add listeners on `obj` that maintain a set of currently held
+//  key[code]s, and call `f` on that set every `delay` milliseconds
+function makeKeyRepeater(obj, delay, f) {
+    var currentlyHeldKeys = {}; // :: KeyCode -> Bool
+    obj.addEventListener("keydown", function(e) { currentlyHeldKeys[e.keyCode] = true; });
+    obj.addEventListener("keyup", function(e) { currentlyHeldKeys[e.keyCode] = false; });
+    window.setInterval(function() { f(currentlyHeldKeys); }, delay);
+}
+
+var state = makeInitialState();
+
+function main() {
+    initWebGL(state);
+    var handlers = {};
+    provideModel = function(state, modelName, model) {
+        if(!window.localStorage.getItem('model_' + modelName)) {
+            window.localStorage.setItem('model_' + modelName, JSON.stringify(model));
+        }
+        state.models[modelName] = model;
+
+        if(state.gl) {
+            var gl = state.gl;
+            var buf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model), gl.DYNAMIC_DRAW);
+            state.modelBuffers[modelName] = buf;
+        }
+
+        state.redraw = true;
+    };
+    provideModel(state, "cube", [0.0,0.0,-1.0,0.0,1.0,-1.0,1.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,-1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,-1.0,1.0,0.0,-1.0,1.0,0.0,-1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,0.0,-1.0,1.0,0.0,-1.0,0.0,0.0,-1.0,1.0,0.0,-0.0,1.0,-1.0,-0.0,1.0,-1.0,-0.0,0.0,-1.0,-1.0,0.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0,-0.0,0.0,-1.0,-1.0,1.0,0.0,0.0,1.0,0.0,-0.0,1.0,-1.0]);
+    state.addObject(0, {obj_type: "cube", pos:[0,-0.5,1.5], ori:[TAU/4,TAU/16]});
+    makeKeyRepeater(window, 10, function(currentlyHeldKeys) {
+        function keyHeld(name) { return !!currentlyHeldKeys[name.charCodeAt(0)]; }
+        var MOVE_DELTA = 0.05;
+        var ROTATE_DELTA = 0.05;
+        function polarXZMovement(pos, mag, theta) {
+            pos[0] += mag * Math.cos(theta);
+            pos[2] += mag * Math.sin(theta);
+        }
+        var THETA_FORWARD = TAU / 4;
+        var THETA_SIDEWAYS = 0;
+        function moveXZ(delta, theta) {
+            polarXZMovement(state.pos, delta, -state.ori[0] + theta);
+            state.redraw = true;
+        }
+        function rotate(theta, phi) {
+            state.ori[0] += theta;
+            state.ori[1] += phi;
+        }
+        if(keyHeld("W")) { moveXZ(MOVE_DELTA, THETA_FORWARD); }
+        if(keyHeld("S")) { moveXZ(-MOVE_DELTA, THETA_FORWARD); }
+        if(keyHeld("A")) { moveXZ(-MOVE_DELTA, THETA_SIDEWAYS); }
+        if(keyHeld("D")) { moveXZ(MOVE_DELTA, THETA_SIDEWAYS); }
+        if(keyHeld("Q")) { state.pos[1] -= MOVE_DELTA; state.redraw = true; }
+        if(keyHeld("E")) { state.pos[1] += MOVE_DELTA; state.redraw = true; }
+
+        if(keyHeld("I")) { rotate(0, ROTATE_DELTA); state.redraw = true;  }
+        if(keyHeld("K")) { rotate(0, -ROTATE_DELTA); state.redraw = true;  }
+        if(keyHeld("J")) { rotate(-ROTATE_DELTA, 0); state.redraw = true;  }
+        if(keyHeld("L")) { rotate(ROTATE_DELTA, 0); state.redraw = true;  }
+    });
+}
+</script>
+</head>
+<body onload="main();">
+<canvas id="gl_canvas" width="640" height="480"></canvas>
+<br />
+<pre id="debugging_log"></pre>
+</body>
